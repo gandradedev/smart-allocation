@@ -1,0 +1,343 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "REST API for managing and rebalancing a variable income investment portfolio.",
+        "title": "Smart Allocation API",
+        "contact": {
+            "name": "Gabriel Andrade"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/assets": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "assets"
+                ],
+                "summary": "List all assets in the portfolio",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Total amount available to invest",
+                        "name": "total_to_invest",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListAssetsResponseDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "assets"
+                ],
+                "summary": "Register a new asset",
+                "parameters": [
+                    {
+                        "description": "Asset data",
+                        "name": "asset",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAssetRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAssetResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/{ticker}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "assets"
+                ],
+                "summary": "Fetch an asset by ticker",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "BBAS3",
+                        "description": "Asset ticker",
+                        "name": "ticker",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Total amount available to invest",
+                        "name": "total_to_invest",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetAssetResponseDTO"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "assets"
+                ],
+                "summary": "Update an asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "BBAS3",
+                        "description": "Asset ticker",
+                        "name": "ticker",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated data",
+                        "name": "asset",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateAssetRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "assets"
+                ],
+                "summary": "Remove an asset from the portfolio",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "BBAS3",
+                        "description": "Asset ticker",
+                        "name": "ticker",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.CustomError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.CreateAssetRequestDTO": {
+            "type": "object",
+            "properties": {
+                "ceiling_price": {
+                    "type": "number"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "target_percent": {
+                    "type": "number"
+                },
+                "ticker": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateAssetResponseDTO": {
+            "type": "object",
+            "properties": {
+                "ticker": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetAssetResponseDTO": {
+            "type": "object",
+            "properties": {
+                "adjusted_contribution": {
+                    "description": "=IF($E$18=0; 0; $B$19 * (E2 / $E$18))\n$B$19=totalToInvest, E2=ceiling_price_factor, $E$18=sum of all factors",
+                    "type": "number"
+                },
+                "ceiling_price": {
+                    "type": "number"
+                },
+                "ceiling_price_factor": {
+                    "type": "number"
+                },
+                "contribution_percent": {
+                    "type": "number"
+                },
+                "contribution_value": {
+                    "type": "number"
+                },
+                "current_percent": {
+                    "type": "number"
+                },
+                "current_value": {
+                    "type": "number"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "shares_to_contribute": {
+                    "type": "number"
+                },
+                "target_percent": {
+                    "type": "number"
+                },
+                "target_value": {
+                    "description": "Calculated fields",
+                    "type": "number"
+                },
+                "ticker": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ListAssetsResponseDTO": {
+            "type": "object",
+            "properties": {
+                "assets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.GetAssetResponseDTO"
+                    }
+                },
+                "total_assets": {
+                    "type": "integer"
+                },
+                "total_value": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.UpdateAssetRequestDTO": {
+            "type": "object",
+            "properties": {
+                "ceiling_price": {
+                    "type": "number"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "target_percent": {
+                    "type": "number"
+                }
+            }
+        },
+        "errors.CustomError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

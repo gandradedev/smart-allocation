@@ -1,0 +1,228 @@
+basePath: /
+definitions:
+  dto.CreateAssetRequestDTO:
+    properties:
+      ceiling_price:
+        type: number
+      price:
+        type: number
+      quantity:
+        type: number
+      target_percent:
+        type: number
+      ticker:
+        type: string
+    type: object
+  dto.CreateAssetResponseDTO:
+    properties:
+      ticker:
+        type: string
+    type: object
+  dto.GetAssetResponseDTO:
+    properties:
+      adjusted_contribution:
+        description: |-
+          =IF($E$18=0; 0; $B$19 * (E2 / $E$18))
+          $B$19=totalToInvest, E2=ceiling_price_factor, $E$18=sum of all factors
+        type: number
+      ceiling_price:
+        type: number
+      ceiling_price_factor:
+        type: number
+      contribution_percent:
+        type: number
+      contribution_value:
+        type: number
+      current_percent:
+        type: number
+      current_value:
+        type: number
+      price:
+        type: number
+      quantity:
+        type: number
+      shares_to_contribute:
+        type: number
+      target_percent:
+        type: number
+      target_value:
+        description: Calculated fields
+        type: number
+      ticker:
+        type: string
+    type: object
+  dto.ListAssetsResponseDTO:
+    properties:
+      assets:
+        items:
+          $ref: '#/definitions/dto.GetAssetResponseDTO'
+        type: array
+      total_assets:
+        type: integer
+      total_value:
+        type: number
+    type: object
+  dto.UpdateAssetRequestDTO:
+    properties:
+      ceiling_price:
+        type: number
+      price:
+        type: number
+      quantity:
+        type: number
+      target_percent:
+        type: number
+    type: object
+  errors.CustomError:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: Gabriel Andrade
+  description: REST API for managing and rebalancing a variable income investment
+    portfolio.
+  title: Smart Allocation API
+  version: "1.0"
+paths:
+  /assets:
+    get:
+      parameters:
+      - description: Total amount available to invest
+        in: query
+        name: total_to_invest
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ListAssetsResponseDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+      summary: List all assets in the portfolio
+      tags:
+      - assets
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Asset data
+        in: body
+        name: asset
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAssetRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CreateAssetResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+      summary: Register a new asset
+      tags:
+      - assets
+  /assets/{ticker}:
+    delete:
+      parameters:
+      - description: Asset ticker
+        example: BBAS3
+        in: path
+        name: ticker
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+      summary: Remove an asset from the portfolio
+      tags:
+      - assets
+    get:
+      parameters:
+      - description: Asset ticker
+        example: BBAS3
+        in: path
+        name: ticker
+        required: true
+        type: string
+      - description: Total amount available to invest
+        in: query
+        name: total_to_invest
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetAssetResponseDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+      summary: Fetch an asset by ticker
+      tags:
+      - assets
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Asset ticker
+        example: BBAS3
+        in: path
+        name: ticker
+        required: true
+        type: string
+      - description: Updated data
+        in: body
+        name: asset
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateAssetRequestDTO'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.CustomError'
+      summary: Update an asset
+      tags:
+      - assets
+swagger: "2.0"
