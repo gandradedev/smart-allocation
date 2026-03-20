@@ -1,12 +1,17 @@
 # Smart Allocation
 
 ![technology Go](https://img.shields.io/badge/technology-go-blue.svg)
+![technology React](https://img.shields.io/badge/technology-react-61DAFB.svg)
 
 Application for managing and rebalancing a variable income investment portfolio. It allows registering assets with their desired allocation parameters and automatically calculates how much to invest (or reduce) in each position so the portfolio reaches the defined target percentages.
 
 ## Technology Stack
 
-- **Language**: Go 1.22+
+- **Backend**: Go 1.22+
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS
+- **State/Data fetching**: TanStack Query
+- **Form validation**: React Hook Form + Zod
 
 ## Repository Structure
 
@@ -21,10 +26,23 @@ smart-allocation/
 │       ├── application/    # Use cases and DTOs
 │       ├── infrastructure/ # HTTP handlers, SQLite repository, routes
 │       └── configuration/  # Database and Swagger setup
-└── frontend/               # Web interface (coming soon)
+└── frontend/               # React web application
+    ├── index.html
+    ├── vite.config.ts      # Dev server + proxy to backend
+    └── src/
+        ├── types/          # TypeScript interfaces
+        ├── services/       # API calls
+        ├── hooks/          # TanStack Query hooks
+        ├── utils/          # Number formatting (BRL)
+        └── components/     # UI components
 ```
 
 ## Quick Start
+
+### Prerequisites
+
+- [Go 1.22+](https://golang.org/dl/)
+- [Node.js 18+](https://nodejs.org/)
 
 ### Installing Go
 
@@ -55,30 +73,34 @@ smart-allocation/
    cd smart-allocation
    ```
 
-2. **Install dependencies**
+2. **Start the backend**
    ```bash
    cd backend
    go mod tidy
-   ```
-
-3. **Run the application**
-   ```bash
    go run main.go
    ```
 
-The server will be available at `http://localhost:8080`.
+   The API will be available at `http://localhost:8080`.
+   Data is automatically persisted in `backend/portfolio.db`.
 
-Data is automatically persisted in the `portfolio.db` file created inside `backend/`.
+3. **Start the frontend** (in a separate terminal)
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+   The app will be available at `http://localhost:5173`.
 
 ## API Documentation
 
-Once the application is running, you can access the interactive API documentation:
+Once the backend is running, the interactive API documentation is available at:
 
 - **Swagger UI**: `http://localhost:8080/swagger/index.html`
 
-### Updating
+### Updating Swagger
 
-To update the Swagger documentation after making changes to API endpoints:
+To regenerate the documentation after making changes to API endpoints:
 
 ```bash
 cd backend
@@ -87,7 +109,7 @@ swag init -g main.go --output docs
 
 ## Development
 
-### Available Commands
+### Backend
 
 ```bash
 # Install dependencies
@@ -100,7 +122,22 @@ go run main.go
 swag init -g main.go --output docs
 ```
 
+### Frontend
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+```
+
 ## Testing
+
+### Backend
 
 ```bash
 # Run all tests
