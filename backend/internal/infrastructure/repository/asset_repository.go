@@ -91,6 +91,23 @@ func (r *AssetRepository) Update(ctx context.Context, ticker string, a *entity.A
 	return nil
 }
 
+func (r *AssetRepository) UpdatePrice(ctx context.Context, ticker string, price float64) error {
+	result, err := r.db.ExecContext(ctx, `
+		UPDATE assets
+		SET price = ?, updated_at = CURRENT_TIMESTAMP
+		WHERE ticker = ?
+	`, price, ticker)
+	if err != nil {
+		return err
+	}
+
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domainerrors.NewNotFoundError("Asset not found")
+	}
+	return nil
+}
+
 func (r *AssetRepository) Delete(ctx context.Context, ticker string) error {
 	result, err := r.db.ExecContext(ctx, `DELETE FROM assets WHERE ticker = ?`, ticker)
 	if err != nil {

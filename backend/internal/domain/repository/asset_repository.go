@@ -14,5 +14,6 @@ type AssetRepository interface {
 	FindByTicker(ctx context.Context, ticker string) (*entity.Asset, error)
 	TotalValue(ctx context.Context) (float64, error)
 	Update(ctx context.Context, ticker string, asset *entity.Asset) error
+	UpdatePrice(ctx context.Context, ticker string, price float64) error
 	Delete(ctx context.Context, ticker string) error
 }

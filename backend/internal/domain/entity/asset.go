@@ -43,7 +43,6 @@ func (a *Asset) Validate() error {
 // CeilingPriceFactor calculates the attractiveness factor of the asset for rebalancing.
 // Returns 0 if the current price has reached or exceeded the ceiling price,
 // or if the current percent has reached or exceeded the target.
-// Formula: =IF(OR(price>=ceiling_price; current%>=target%); 0; ((ceiling_price-price)/ceiling_price) * (target%-current%))
 func (a *Asset) CeilingPriceFactor(currentPercent float64) float64 {
 	if a.Price >= a.CeilingPrice || currentPercent >= a.TargetPercent {
 		return 0
