@@ -1,5 +1,16 @@
 import type { Asset } from '../types/asset'
 import { fmt } from '../utils/format'
+import { usePollAssetPrice } from '../hooks/useAssets'
+
+function PricePollCell({ ticker }: { ticker: string }) {
+  usePollAssetPrice(ticker)
+  return (
+    <svg className="h-4 w-4 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+    </svg>
+  )
+}
 
 interface AssetTableProps {
   assets: Asset[]
@@ -58,12 +69,12 @@ export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading 
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-3">Ticker</th>
-                <th className="px-4 py-3">Price</th>
                 <th className="px-4 py-3">Qty</th>
+                <th className="px-4 py-3">Price</th>
+                <th className="px-4 py-3">Ceiling Price</th>
                 <th className="px-4 py-3">Current Value</th>
                 <th className="px-4 py-3">Current %</th>
                 <th className="px-4 py-3">Target %</th>
-                <th className="px-4 py-3">Ceiling Price</th>
                 <th className="px-4 py-3">Allocation</th>
                 {totalToInvest && (
                   <>
@@ -82,12 +93,17 @@ export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading 
                       <td className="px-4 py-3">
                         <span className="font-semibold text-slate-900">{asset.ticker}</span>
                       </td>
-                      <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.price)}</td>
                       <td className="px-4 py-3 text-slate-700">{fmt.decimal(asset.quantity)}</td>
+                      <td className="px-4 py-3 text-slate-700">
+                        {asset.price === 0
+                          ? <PricePollCell ticker={asset.ticker} />
+                          : fmt.currency(asset.price)
+                        }
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.ceiling_price)}</td>
                       <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.current_value)}</td>
                       <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.current_percent)}</td>
                       <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.target_percent)}</td>
-                      <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.ceiling_price)}</td>
                       <td className="px-4 py-3">
                         <AllocationBadge current={asset.current_percent} target={asset.target_percent} />
                       </td>

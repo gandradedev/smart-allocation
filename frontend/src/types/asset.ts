@@ -22,10 +22,13 @@ export interface PortfolioResponse {
 
 export interface CreateAssetPayload {
   ticker: string
-  price: number
   quantity: number
   ceiling_price: number
   target_percent: number
 }
 
-export type UpdateAssetPayload = Omit<CreateAssetPayload, 'ticker'>
+export interface UpdateAssetPayload {
+  quantity: number
+  ceiling_price: number
+  target_percent: number
+}
