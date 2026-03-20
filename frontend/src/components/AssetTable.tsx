@@ -1,0 +1,134 @@
+import type { Asset } from '../types/asset'
+import { fmt } from '../utils/format'
+
+interface AssetTableProps {
+  assets: Asset[]
+  totalToInvest: number | undefined
+  onEdit: (asset: Asset) => void
+  onDelete: (asset: Asset) => void
+}
+
+function AllocationBadge({ current, target }: { current: number; target: number }) {
+  const diff = current - target
+  if (Math.abs(diff) < 0.5) {
+    return <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">On target</span>
+  }
+  if (diff > 0) {
+    return <span className="inline-flex rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">+{fmt.percent(diff)} over</span>
+  }
+  return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-600">{fmt.percent(Math.abs(diff))} under</span>
+}
+
+function SkeletonRow() {
+  return (
+    <tr>
+      {Array.from({ length: 9 }).map((_, i) => (
+        <td key={i} className="px-4 py-3">
+          <div className="h-4 animate-pulse rounded bg-slate-200" />
+        </td>
+      ))}
+    </tr>
+  )
+}
+
+interface AssetTableWithLoadingProps extends AssetTableProps {
+  isLoading: boolean
+}
+
+export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading }: AssetTableWithLoadingProps) {
+  if (!isLoading && assets.length === 0) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 pb-12">
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-16 text-center">
+          <svg className="mx-auto h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <p className="mt-3 text-sm font-medium text-slate-500">No assets yet</p>
+          <p className="mt-1 text-xs text-slate-400">Add your first asset to start tracking your portfolio.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mx-auto max-w-7xl px-6 pb-12">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                <th className="px-4 py-3">Ticker</th>
+                <th className="px-4 py-3">Price</th>
+                <th className="px-4 py-3">Qty</th>
+                <th className="px-4 py-3">Current Value</th>
+                <th className="px-4 py-3">Current %</th>
+                <th className="px-4 py-3">Target %</th>
+                <th className="px-4 py-3">Ceiling Price</th>
+                <th className="px-4 py-3">Allocation</th>
+                {totalToInvest && (
+                  <>
+                    <th className="px-4 py-3">Shares to Buy</th>
+                    <th className="px-4 py-3">Adj. Contribution</th>
+                  </>
+                )}
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {isLoading
+                ? Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)
+                : assets.map(asset => (
+                    <tr key={asset.ticker} className="hover:bg-slate-50">
+                      <td className="px-4 py-3">
+                        <span className="font-semibold text-slate-900">{asset.ticker}</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.price)}</td>
+                      <td className="px-4 py-3 text-slate-700">{fmt.decimal(asset.quantity)}</td>
+                      <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.current_value)}</td>
+                      <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.current_percent)}</td>
+                      <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.target_percent)}</td>
+                      <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.ceiling_price)}</td>
+                      <td className="px-4 py-3">
+                        <AllocationBadge current={asset.current_percent} target={asset.target_percent} />
+                      </td>
+                      {totalToInvest && (
+                        <>
+                          <td className="px-4 py-3 font-medium text-green-700">
+                            {asset.shares_to_contribute > 0 ? fmt.decimal(asset.shares_to_contribute) : '—'}
+                          </td>
+                          <td className="px-4 py-3 font-medium text-green-700">
+                            {asset.adjusted_contribution > 0 ? fmt.currency(asset.adjusted_contribution) : '—'}
+                          </td>
+                        </>
+                      )}
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => onEdit(asset)}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                            title="Edit"
+                          >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => onDelete(asset)}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                            title="Delete"
+                          >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}

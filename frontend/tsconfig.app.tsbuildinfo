@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/assetformmodal.tsx","./src/components/assettable.tsx","./src/components/confirmdeletemodal.tsx","./src/components/header.tsx","./src/components/portfoliosummary.tsx","./src/components/ui/modal.tsx","./src/hooks/useassets.ts","./src/services/api.ts","./src/types/asset.ts","./src/utils/format.ts"],"version":"5.9.3"}
