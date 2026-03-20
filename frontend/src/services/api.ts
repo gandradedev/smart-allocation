@@ -1,4 +1,4 @@
-import type { CreateAssetPayload, PortfolioResponse, UpdateAssetPayload } from '../types/asset'
+import type { Asset, CreateAssetPayload, PortfolioResponse, UpdateAssetPayload } from '../types/asset'
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -13,6 +13,10 @@ export const api = {
   listAssets(totalToInvest?: number): Promise<PortfolioResponse> {
     const params = totalToInvest ? `?total_to_invest=${totalToInvest}` : ''
     return fetch(`/assets${params}`).then(handleResponse<PortfolioResponse>)
+  },
+
+  getAsset(ticker: string): Promise<Asset> {
+    return fetch(`/assets/${ticker}`).then(handleResponse<Asset>)
   },
 
   createAsset(payload: CreateAssetPayload): Promise<{ ticker: string }> {

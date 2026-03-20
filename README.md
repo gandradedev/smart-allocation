@@ -73,7 +73,25 @@ smart-allocation/
    cd smart-allocation
    ```
 
-2. **Start the backend**
+2. **Configure the brapi.dev token**
+
+   The backend requires a token to fetch asset prices from [brapi.dev](https://brapi.dev).
+
+   Copy the example file and set your token:
+   ```bash
+   cd backend
+   cp .env.example .env
+   ```
+
+   Then edit `backend/.env` and replace the placeholder with your token:
+   ```
+   BRAPI_TOKEN=your_token_here
+   ```
+
+   > Get your free token at [brapi.dev](https://brapi.dev) after creating an account.
+   > The `.env` file is ignored by git and should never be committed.
+
+3. **Start the backend**
    ```bash
    cd backend
    go mod tidy

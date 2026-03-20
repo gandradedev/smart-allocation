@@ -7,7 +7,6 @@ import type { Asset, CreateAssetPayload, UpdateAssetPayload } from '../types/ass
 
 const schema = z.object({
   ticker: z.string().min(1, 'Required').max(10).transform(v => v.toUpperCase()),
-  price: z.coerce.number().positive('Must be greater than 0'),
   quantity: z.coerce.number().min(0, 'Cannot be negative'),
   ceiling_price: z.coerce.number().positive('Must be greater than 0'),
   target_percent: z.coerce.number().positive('Must be greater than 0').max(100, 'Max 100%'),
@@ -54,7 +53,6 @@ export function AssetFormModal({ asset, isPending, onSubmit, onClose }: AssetFor
     defaultValues: asset
       ? {
           ticker: asset.ticker,
-          price: asset.price,
           quantity: asset.quantity,
           ceiling_price: asset.ceiling_price,
           target_percent: asset.target_percent,
@@ -66,7 +64,6 @@ export function AssetFormModal({ asset, isPending, onSubmit, onClose }: AssetFor
     if (asset) {
       reset({
         ticker: asset.ticker,
-        price: asset.price,
         quantity: asset.quantity,
         ceiling_price: asset.ceiling_price,
         target_percent: asset.target_percent,
@@ -88,18 +85,14 @@ export function AssetFormModal({ asset, isPending, onSubmit, onClose }: AssetFor
   return (
     <Modal title={isEditing ? `Edit ${asset.ticker}` : 'New Asset'} onClose={onClose}>
       <form onSubmit={handleSubmit(onValid)} className="space-y-4">
-        <Field label="Ticker" error={errors.ticker?.message}>
-          <input
-            {...register('ticker')}
-            placeholder="BBAS3"
-            disabled={isEditing}
-            className={inputClass}
-          />
-        </Field>
-
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Price (R$)" error={errors.price?.message}>
-            <input {...register('price')} type="number" step="0.01" placeholder="0.00" className={inputClass} />
+          <Field label="Ticker" error={errors.ticker?.message}>
+            <input
+              {...register('ticker')}
+              placeholder="BBAS3"
+              disabled={isEditing}
+              className={inputClass}
+            />
           </Field>
 
           <Field label="Quantity" error={errors.quantity?.message}>
@@ -116,6 +109,12 @@ export function AssetFormModal({ asset, isPending, onSubmit, onClose }: AssetFor
             <input {...register('target_percent')} type="number" step="0.01" placeholder="0.00" className={inputClass} />
           </Field>
         </div>
+
+        {!isEditing && (
+          <p className="text-xs text-slate-500">
+            The current market price will be fetched automatically from brapi.dev after registration.
+          </p>
+        )}
 
         <div className="flex justify-end gap-3 pt-2">
           <button

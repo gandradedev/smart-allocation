@@ -232,9 +232,6 @@ const docTemplate = `{
                 "ceiling_price": {
                     "type": "number"
                 },
-                "price": {
-                    "type": "number"
-                },
                 "quantity": {
                     "type": "number"
                 },
@@ -258,7 +255,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adjusted_contribution": {
-                    "description": "=IF($E$18=0; 0; $B$19 * (E2 / $E$18))\n$B$19=totalToInvest, E2=ceiling_price_factor, $E$18=sum of all factors",
                     "type": "number"
                 },
                 "ceiling_price": {

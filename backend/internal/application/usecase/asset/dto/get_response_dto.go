@@ -17,8 +17,6 @@ type GetAssetResponseDTO struct {
 	ContributionValue    float64 `json:"contribution_value"`
 	SharesToContribute   float64 `json:"shares_to_contribute"`
 	CeilingPriceFactor   float64 `json:"ceiling_price_factor"`
-	// =IF($E$18=0; 0; $B$19 * (E2 / $E$18))
-	// $B$19=totalToInvest, E2=ceiling_price_factor, $E$18=sum of all factors
 	AdjustedContribution float64 `json:"adjusted_contribution"`
 }
 
@@ -47,7 +45,6 @@ func (d *GetAssetResponseDTO) FromEntity(a *entity.Asset, totalValue, sumFactors
 
 	ceilingPriceFactor := a.CeilingPriceFactor(currentPercent)
 
-	// =IF($E$18=0; 0; $B$19 * (E2 / $E$18))
 	var adjustedContribution float64
 	if sumFactors > 0 {
 		adjustedContribution = totalToInvest * (ceilingPriceFactor / sumFactors)
