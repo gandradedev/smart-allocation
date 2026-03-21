@@ -16,11 +16,10 @@ type Asset struct {
 }
 
 // NewAsset creates and validates a new asset.
-func NewAsset(ticker string, quantity, price, ceilingPrice, targetPercent float64) (*Asset, error) {
+func NewAsset(ticker string, quantity, ceilingPrice, targetPercent float64) (*Asset, error) {
 	a := &Asset{
 		Ticker:        strings.ToUpper(strings.TrimSpace(ticker)),
 		Quantity:      quantity,
-		Price:         price,
 		CeilingPrice:  ceilingPrice,
 		TargetPercent: targetPercent,
 	}
