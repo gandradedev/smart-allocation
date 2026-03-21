@@ -1,7 +1,48 @@
+import { useState } from 'react'
 import type { Asset, AssetType } from '../types/asset'
 import { ASSET_TYPES } from '../types/asset'
 import { fmt } from '../utils/format'
 import { usePollAssetPrice } from '../hooks/useAssets'
+
+type SortKey = 'ticker' | 'current_value' | 'current_percent' | 'target_percent' | 'deviation'
+type SortDir = 'asc' | 'desc'
+type AllocationFilter = 'all' | 'under' | 'over' | 'on'
+
+function getSortValue(asset: Asset, key: SortKey): number | string {
+  if (key === 'ticker') return asset.ticker
+  if (key === 'deviation') return asset.current_percent - asset.target_percent
+  return asset[key]
+}
+
+function sortAssets(assets: Asset[], key: SortKey, dir: SortDir): Asset[] {
+  return [...assets].sort((a, b) => {
+    const av = getSortValue(a, key)
+    const bv = getSortValue(b, key)
+    const cmp = typeof av === 'string' ? av.localeCompare(bv as string) : (av as number) - (bv as number)
+    return dir === 'asc' ? cmp : -cmp
+  })
+}
+
+function filterByAllocation(assets: Asset[], filter: AllocationFilter): Asset[] {
+  if (filter === 'all') return assets
+  return assets.filter(a => {
+    const diff = a.current_percent - a.target_percent
+    if (filter === 'over') return diff > 0
+    if (filter === 'under') return diff < 0
+    return diff === 0
+  })
+}
+
+function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
+  if (!active) return (
+    <svg className="h-3 w-3 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+    </svg>
+  )
+  return dir === 'asc'
+    ? <svg className="h-3 w-3 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+    : <svg className="h-3 w-3 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+}
 
 function PricePollCell({ ticker }: { ticker: string }) {
   usePollAssetPrice(ticker)
@@ -56,6 +97,41 @@ const ASSET_TYPE_LABELS: Record<AssetType, string> = {
 }
 
 export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading }: AssetTableWithLoadingProps) {
+  const [sortKey, setSortKey] = useState<SortKey>('ticker')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [allocationFilter, setAllocationFilter] = useState<AllocationFilter>('all')
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  function Th({ label, sortable, column }: { label: string; sortable?: SortKey; column?: string }) {
+    if (!sortable) return <th className={`px-4 py-3 ${column ?? ''}`}>{label}</th>
+    return (
+      <th className={`px-4 py-3 ${column ?? ''}`}>
+        <button
+          onClick={() => handleSort(sortable)}
+          className="inline-flex items-center gap-1 hover:text-slate-700"
+        >
+          {label}
+          <SortIcon active={sortKey === sortable} dir={sortDir} />
+        </button>
+      </th>
+    )
+  }
+
+  const FILTER_OPTIONS: { value: AllocationFilter; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'under', label: 'Under' },
+    { value: 'over', label: 'Over' },
+    { value: 'on', label: 'On target' },
+  ]
+
   if (!isLoading && assets.length === 0) {
     return (
       <div className="mx-auto max-w-7xl px-6 pb-12">
@@ -73,18 +149,34 @@ export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading 
   return (
     <div className="mx-auto max-w-7xl px-6 pb-12">
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-2">
+          <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Filter</span>
+          {FILTER_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setAllocationFilter(opt.value)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                allocationFilter === opt.value
+                  ? 'bg-slate-800 text-white'
+                  : 'text-slate-500 hover:bg-slate-100'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                <th className="px-4 py-3">Ticker</th>
+              <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium tracking-wide text-slate-500">
+                <Th label="Ticker" sortable="ticker" />
                 <th className="px-4 py-3">Qty</th>
                 <th className="px-4 py-3">Price</th>
                 <th className="px-4 py-3">Ceiling Price</th>
-                <th className="px-4 py-3">Current Value</th>
-                <th className="px-4 py-3">Current %</th>
-                <th className="px-4 py-3">Target %</th>
-                <th className="px-4 py-3">Allocation</th>
+                <Th label="Current Value" sortable="current_value" />
+                <Th label="Current %" sortable="current_percent" />
+                <Th label="Target %" sortable="target_percent" />
+                <Th label="Allocation" sortable="deviation" />
                 {totalToInvest && (
                   <>
                     <th className="px-4 py-3">Units to Buy</th>
@@ -98,7 +190,8 @@ export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading 
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)
                 : ASSET_TYPES.flatMap(type => {
-                    const group = assets.filter(a => a.asset_type === type)
+                    const rawGroup = assets.filter(a => a.asset_type === type)
+                    const group = sortAssets(filterByAllocation(rawGroup, allocationFilter), sortKey, sortDir)
                     if (group.length === 0) return []
 
                     const groupValue = group.reduce((sum, a) => sum + a.current_value, 0)
