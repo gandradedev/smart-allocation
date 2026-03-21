@@ -8,7 +8,19 @@ import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from './hoo
 import type { Asset, CreateAssetPayload, UpdateAssetPayload } from './types/asset'
 
 export default function App() {
-  const [totalToInvest, setTotalToInvest] = useState<number | undefined>()
+  const [totalToInvest, setTotalToInvest] = useState<number | undefined>(() => {
+    const stored = localStorage.getItem('totalToInvest')
+    return stored ? Number(stored) : undefined
+  })
+
+  function handleTotalToInvestChange(value: number | undefined) {
+    if (value === undefined) {
+      localStorage.removeItem('totalToInvest')
+    } else {
+      localStorage.setItem('totalToInvest', String(value))
+    }
+    setTotalToInvest(value)
+  }
   const [assetToEdit, setAssetToEdit] = useState<Asset | null>(null)
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -65,7 +77,7 @@ export default function App() {
             totalValue={data?.total_value ?? 0}
             totalAssets={data?.total_assets ?? 0}
             totalToInvest={totalToInvest}
-            onTotalToInvestChange={setTotalToInvest}
+            onTotalToInvestChange={handleTotalToInvestChange}
           />
 
           <AssetTable
