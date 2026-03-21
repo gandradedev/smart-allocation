@@ -21,7 +21,7 @@ interface AssetTableProps {
 
 function AllocationBadge({ current, target }: { current: number; target: number }) {
   const diff = current - target
-  if (Math.abs(diff) < 0.5) {
+  if (diff === 0) {
     return <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">On target</span>
   }
   if (diff > 0) {
@@ -78,8 +78,8 @@ export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading 
                 <th className="px-4 py-3">Allocation</th>
                 {totalToInvest && (
                   <>
-                    <th className="px-4 py-3">Shares to Buy</th>
-                    <th className="px-4 py-3">Adj. Contribution</th>
+                    <th className="px-4 py-3">Units to Buy</th>
+                    <th className="px-4 py-3">Amount to Invest</th>
                   </>
                 )}
                 <th className="px-4 py-3 text-right">Actions</th>
@@ -109,10 +109,10 @@ export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading 
                       </td>
                       {totalToInvest && (
                         <>
-                          <td className="px-4 py-3 font-medium text-green-700">
+                          <td className={`px-4 py-3 font-medium ${asset.shares_to_contribute > 0 ? 'text-green-700' : 'text-slate-700'}`}>
                             {asset.shares_to_contribute > 0 ? fmt.decimal(asset.shares_to_contribute) : '—'}
                           </td>
-                          <td className="px-4 py-3 font-medium text-green-700">
+                          <td className={`px-4 py-3 font-medium ${asset.adjusted_contribution > 0 ? 'text-green-700' : 'text-slate-700'}`}>
                             {asset.adjusted_contribution > 0 ? fmt.currency(asset.adjusted_contribution) : '—'}
                           </td>
                         </>
