@@ -76,10 +76,10 @@ func (r *AssetRepository) TotalValue(ctx context.Context) (float64, error) {
 func (r *AssetRepository) Update(ctx context.Context, ticker string, a *entity.Asset) error {
 	result, err := r.db.ExecContext(ctx, `
 		UPDATE assets
-		SET quantity = ?, price = ?, ceiling_price = ?, target_percent = ?,
+		SET quantity = ?, ceiling_price = ?, target_percent = ?,
 		    updated_at = CURRENT_TIMESTAMP
 		WHERE ticker = ?
-	`, a.Quantity, a.Price, a.CeilingPrice, a.TargetPercent, ticker)
+	`, a.Quantity, a.CeilingPrice, a.TargetPercent, ticker)
 	if err != nil {
 		return err
 	}
