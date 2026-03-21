@@ -1,5 +1,10 @@
+export type AssetType = 'ACAO' | 'FII' | 'ETF' | 'BDR' | 'STOCK'
+
+export const ASSET_TYPES: AssetType[] = ['ACAO', 'FII', 'ETF', 'BDR', 'STOCK']
+
 export interface Asset {
   ticker: string
+  asset_type: AssetType
   price: number
   quantity: number
   ceiling_price: number
@@ -22,12 +27,14 @@ export interface PortfolioResponse {
 
 export interface CreateAssetPayload {
   ticker: string
+  asset_type: AssetType
   quantity: number
   ceiling_price: number
   target_percent: number
 }
 
 export interface UpdateAssetPayload {
+  asset_type: AssetType
   quantity: number
   ceiling_price: number
   target_percent: number

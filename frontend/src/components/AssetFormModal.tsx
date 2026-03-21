@@ -1,12 +1,13 @@
-import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Modal } from './ui/Modal'
-import type { Asset, CreateAssetPayload, UpdateAssetPayload } from '../types/asset'
+import type { Asset, AssetType, CreateAssetPayload, UpdateAssetPayload } from '../types/asset'
+import { ASSET_TYPES } from '../types/asset'
 
 const schema = z.object({
   ticker: z.string().min(1, 'Required').max(10).transform(v => v.toUpperCase()),
+  asset_type: z.enum(ASSET_TYPES as [AssetType, ...AssetType[]]),
   quantity: z.coerce.number().min(0, 'Cannot be negative'),
   ceiling_price: z.coerce.number().positive('Must be greater than 0'),
   target_percent: z.coerce.number().positive('Must be greater than 0').max(100, 'Max 100%'),
@@ -46,32 +47,19 @@ export function AssetFormModal({ asset, isPending, onSubmit, onClose }: AssetFor
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: asset
       ? {
           ticker: asset.ticker,
+          asset_type: asset.asset_type as AssetType,
           quantity: asset.quantity,
           ceiling_price: asset.ceiling_price,
           target_percent: asset.target_percent,
         }
-      : undefined,
+      : { asset_type: 'ACAO' as AssetType },
   })
-
-  useEffect(() => {
-    if (asset) {
-      reset({
-        ticker: asset.ticker,
-        quantity: asset.quantity,
-        ceiling_price: asset.ceiling_price,
-        target_percent: asset.target_percent,
-      })
-    } else {
-      reset({})
-    }
-  }, [asset, reset])
 
   function onValid(data: FormValues) {
     if (isEditing) {
@@ -95,16 +83,26 @@ export function AssetFormModal({ asset, isPending, onSubmit, onClose }: AssetFor
             />
           </Field>
 
-          <Field label="Quantity" error={errors.quantity?.message}>
-            <input {...register('quantity')} type="number" step="0.01" placeholder="0" className={inputClass} />
+          <Field label="Type" error={errors.asset_type?.message}>
+            <select {...register('asset_type')} className={inputClass}>
+              {ASSET_TYPES.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
           </Field>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
+          <Field label="Quantity" error={errors.quantity?.message}>
+            <input {...register('quantity')} type="number" step="0.01" placeholder="0" className={inputClass} />
+          </Field>
+
           <Field label="Ceiling Price (R$)" error={errors.ceiling_price?.message}>
             <input {...register('ceiling_price')} type="number" step="0.01" placeholder="0.00" className={inputClass} />
           </Field>
+        </div>
 
+        <div className="grid grid-cols-2 gap-4">
           <Field label="Target %" error={errors.target_percent?.message}>
             <input {...register('target_percent')} type="number" step="0.01" placeholder="0.00" className={inputClass} />
           </Field>

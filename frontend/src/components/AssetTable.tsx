@@ -1,4 +1,5 @@
-import type { Asset } from '../types/asset'
+import type { Asset, AssetType } from '../types/asset'
+import { ASSET_TYPES } from '../types/asset'
 import { fmt } from '../utils/format'
 import { usePollAssetPrice } from '../hooks/useAssets'
 
@@ -46,6 +47,14 @@ interface AssetTableWithLoadingProps extends AssetTableProps {
   isLoading: boolean
 }
 
+const ASSET_TYPE_LABELS: Record<AssetType, string> = {
+  ACAO: 'Ações',
+  FII: 'REITs (FII)',
+  ETF: 'ETF',
+  BDR: 'BDR',
+  STOCK: 'Stocks',
+}
+
 export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading }: AssetTableWithLoadingProps) {
   if (!isLoading && assets.length === 0) {
     return (
@@ -88,59 +97,84 @@ export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading 
             <tbody className="divide-y divide-slate-100">
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)
-                : assets.map(asset => (
-                    <tr key={asset.ticker} className="hover:bg-slate-50">
-                      <td className="px-4 py-3">
-                        <span className="font-semibold text-slate-900">{asset.ticker}</span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-700">{fmt.decimal(asset.quantity)}</td>
-                      <td className="px-4 py-3 text-slate-700">
-                        {asset.price === 0
-                          ? <PricePollCell ticker={asset.ticker} />
-                          : fmt.currency(asset.price)
-                        }
-                      </td>
-                      <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.ceiling_price)}</td>
-                      <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.current_value)}</td>
-                      <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.current_percent)}</td>
-                      <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.target_percent)}</td>
-                      <td className="px-4 py-3">
-                        <AllocationBadge current={asset.current_percent} target={asset.target_percent} />
-                      </td>
-                      {totalToInvest && (
-                        <>
-                          <td className={`px-4 py-3 font-medium ${asset.shares_to_contribute > 0 ? 'text-green-700' : 'text-slate-700'}`}>
-                            {asset.shares_to_contribute > 0 ? fmt.decimal(asset.shares_to_contribute) : '—'}
+                : ASSET_TYPES.flatMap(type => {
+                    const group = assets.filter(a => a.asset_type === type)
+                    if (group.length === 0) return []
+
+                    const groupValue = group.reduce((sum, a) => sum + a.current_value, 0)
+                    const groupPercent = group.reduce((sum, a) => sum + a.current_percent, 0)
+                    // 9 base columns (Ticker, Qty, Price, Ceiling, Value, Current%, Target%, Allocation, Actions)
+                    // + 2 optional columns when totalToInvest is set (Units to Buy, Amount to Invest)
+                    const colSpan = 9 + (totalToInvest ? 2 : 0)
+
+                    return [
+                      <tr key={`group-${type}`} className="bg-slate-100">
+                        <td colSpan={colSpan} className="px-4 py-2">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                              {ASSET_TYPE_LABELS[type]}
+                            </span>
+                            <span className="text-xs text-slate-400">{group.length} {group.length === 1 ? 'asset' : 'assets'}</span>
+                            <span className="ml-auto text-xs font-medium text-slate-600">{fmt.currency(groupValue)}</span>
+                            <span className="text-xs font-medium text-slate-600">{fmt.percent(groupPercent)}</span>
+                          </div>
+                        </td>
+                      </tr>,
+                      ...group.map(asset => (
+                        <tr key={asset.ticker} className="hover:bg-slate-50">
+                          <td className="px-4 py-3">
+                            <span className="font-semibold text-slate-900">{asset.ticker}</span>
                           </td>
-                          <td className={`px-4 py-3 font-medium ${asset.adjusted_contribution > 0 ? 'text-green-700' : 'text-slate-700'}`}>
-                            {asset.adjusted_contribution > 0 ? fmt.currency(asset.adjusted_contribution) : '—'}
+                          <td className="px-4 py-3 text-slate-700">{fmt.decimal(asset.quantity)}</td>
+                          <td className="px-4 py-3 text-slate-700">
+                            {asset.price === 0
+                              ? <PricePollCell ticker={asset.ticker} />
+                              : fmt.currency(asset.price)
+                            }
                           </td>
-                        </>
-                      )}
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-1">
-                          <button
-                            onClick={() => onEdit(asset)}
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                            title="Edit"
-                          >
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => onDelete(asset)}
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                            title="Delete"
-                          >
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.ceiling_price)}</td>
+                          <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.current_value)}</td>
+                          <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.current_percent)}</td>
+                          <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.target_percent)}</td>
+                          <td className="px-4 py-3">
+                            <AllocationBadge current={asset.current_percent} target={asset.target_percent} />
+                          </td>
+                          {totalToInvest && (
+                            <>
+                              <td className={`px-4 py-3 font-medium ${asset.shares_to_contribute > 0 ? 'text-green-700' : 'text-slate-700'}`}>
+                                {asset.shares_to_contribute > 0 ? fmt.decimal(asset.shares_to_contribute) : '—'}
+                              </td>
+                              <td className={`px-4 py-3 font-medium ${asset.adjusted_contribution > 0 ? 'text-green-700' : 'text-slate-700'}`}>
+                                {asset.adjusted_contribution > 0 ? fmt.currency(asset.adjusted_contribution) : '—'}
+                              </td>
+                            </>
+                          )}
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex justify-end gap-1">
+                              <button
+                                onClick={() => onEdit(asset)}
+                                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                                title="Edit"
+                              >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => onDelete(asset)}
+                                className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                                title="Delete"
+                              >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )),
+                    ]
+                  })}
             </tbody>
           </table>
         </div>
