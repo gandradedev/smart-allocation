@@ -2,16 +2,18 @@ package dto
 
 import (
 	"math"
+
 	"smart-allocation/internal/domain/entity"
 )
 
 // GetAssetResponseDTO is the output DTO for a single asset, including calculated rebalancing fields.
 type GetAssetResponseDTO struct {
-	Ticker        string  `json:"ticker"`
-	Quantity      float64 `json:"quantity"`
-	Price         float64 `json:"price"`
-	CeilingPrice  float64 `json:"ceiling_price"`
-	TargetPercent float64 `json:"target_percent"`
+	Ticker        string           `json:"ticker"`
+	AssetType     entity.AssetType `json:"asset_type"`
+	Quantity      float64          `json:"quantity"`
+	Price         float64          `json:"price"`
+	CeilingPrice  float64          `json:"ceiling_price"`
+	TargetPercent float64          `json:"target_percent"`
 	// Calculated fields
 	TargetValue          float64 `json:"target_value"`
 	CurrentPercent       float64 `json:"current_percent"`
@@ -55,6 +57,7 @@ func (d *GetAssetResponseDTO) FromEntity(a *entity.Asset, totalValue, sumFactors
 
 	return &GetAssetResponseDTO{
 		Ticker:               a.Ticker,
+		AssetType:            a.AssetType,
 		Quantity:             a.Quantity,
 		Price:                a.Price,
 		CeilingPrice:         a.CeilingPrice,
