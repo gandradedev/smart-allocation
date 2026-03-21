@@ -1,6 +1,9 @@
 package dto
 
-import "smart-allocation/internal/domain/entity"
+import (
+	"math"
+	"smart-allocation/internal/domain/entity"
+)
 
 // GetAssetResponseDTO is the output DTO for a single asset, including calculated rebalancing fields.
 type GetAssetResponseDTO struct {
@@ -39,8 +42,8 @@ func (d *GetAssetResponseDTO) FromEntity(a *entity.Asset, totalValue, sumFactors
 	contributionValue := targetValue - currentValue
 
 	var sharesToContribute float64
-	if a.Price > 0 {
-		sharesToContribute = contributionValue / a.Price
+	if a.Price > 0 && contributionPercent > 0 {
+		sharesToContribute = math.Ceil(contributionValue / a.Price)
 	}
 
 	ceilingPriceFactor := a.CeilingPriceFactor(currentPercent)
