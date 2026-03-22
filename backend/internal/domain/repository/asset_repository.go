@@ -15,5 +15,6 @@ type AssetRepository interface {
 	TotalValue(ctx context.Context) (float64, error)
 	Update(ctx context.Context, ticker string, asset *entity.Asset) error
 	UpdatePrice(ctx context.Context, ticker string, price float64) error
+	UpdateMetadata(ctx context.Context, ticker string, price float64, icon, currency string) error
 	Delete(ctx context.Context, ticker string) error
 }

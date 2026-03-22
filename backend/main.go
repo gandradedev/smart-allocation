@@ -41,7 +41,7 @@ func main() {
 	brapiClient := infraclient.NewBrapiHTTPClient(cfg.BrapiToken)
 
 	updatePriceUC := asset.NewUpdateAssetPriceUseCase(repo, brapiClient)
-	createUC := asset.NewCreateAssetUseCase(repo, updatePriceUC)
+	createUC := asset.NewCreateAssetUseCase(repo, brapiClient)
 	getUC := asset.NewGetAssetUseCase(repo)
 	listUC := asset.NewListAssetsUseCase(repo)
 	updateUC := asset.NewUpdateAssetUseCase(repo)

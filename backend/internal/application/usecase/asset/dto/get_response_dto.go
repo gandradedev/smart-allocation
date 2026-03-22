@@ -14,6 +14,8 @@ type GetAssetResponseDTO struct {
 	Price         float64          `json:"price"`
 	CeilingPrice  float64          `json:"ceiling_price"`
 	TargetPercent float64          `json:"target_percent"`
+	Icon          string           `json:"icon"`
+	Currency      string           `json:"currency"`
 	// Calculated fields
 	TargetValue          float64 `json:"target_value"`
 	CurrentPercent       float64 `json:"current_percent"`
@@ -62,6 +64,8 @@ func (d *GetAssetResponseDTO) FromEntity(a *entity.Asset, totalValue, sumFactors
 		Price:                a.Price,
 		CeilingPrice:         a.CeilingPrice,
 		TargetPercent:        a.TargetPercent,
+		Icon:                 a.Icon,
+		Currency:             a.Currency,
 		TargetValue:          targetValue,
 		CurrentPercent:       currentPercent,
 		CurrentValue:         currentValue,
