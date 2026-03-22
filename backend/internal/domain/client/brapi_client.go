@@ -6,6 +6,8 @@ import "context"
 type AssetQuote struct {
 	Symbol             string
 	RegularMarketPrice float64
+	LogoURL            string
+	Currency           string
 }
 
 // BrapiClient is the domain contract for fetching asset quotes.

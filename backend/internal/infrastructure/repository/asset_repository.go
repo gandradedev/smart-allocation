@@ -19,9 +19,9 @@ func NewAssetRepository(db *sql.DB) *AssetRepository {
 
 func (r *AssetRepository) Create(ctx context.Context, a *entity.Asset) error {
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO assets (ticker, asset_type, quantity, price, ceiling_price, target_percent)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`, a.Ticker, a.AssetType, a.Quantity, a.Price, a.CeilingPrice, a.TargetPercent)
+		INSERT INTO assets (ticker, asset_type, quantity, price, ceiling_price, target_percent, icon, currency)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	`, a.Ticker, a.AssetType, a.Quantity, a.Price, a.CeilingPrice, a.TargetPercent, a.Icon, a.Currency)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			return domainerrors.NewAlreadyExistsError("Asset already registered in portfolio")
@@ -33,7 +33,7 @@ func (r *AssetRepository) Create(ctx context.Context, a *entity.Asset) error {
 
 func (r *AssetRepository) FindAll(ctx context.Context) ([]*entity.Asset, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT ticker, asset_type, quantity, price, ceiling_price, target_percent
+		SELECT ticker, asset_type, quantity, price, ceiling_price, target_percent, icon, currency
 		FROM assets
 		ORDER BY asset_type, ticker
 	`)
@@ -45,7 +45,7 @@ func (r *AssetRepository) FindAll(ctx context.Context) ([]*entity.Asset, error) 
 	var assets []*entity.Asset
 	for rows.Next() {
 		a := &entity.Asset{}
-		if err := rows.Scan(&a.Ticker, &a.AssetType, &a.Quantity, &a.Price, &a.CeilingPrice, &a.TargetPercent); err != nil {
+		if err := rows.Scan(&a.Ticker, &a.AssetType, &a.Quantity, &a.Price, &a.CeilingPrice, &a.TargetPercent, &a.Icon, &a.Currency); err != nil {
 			return nil, err
 		}
 		assets = append(assets, a)
@@ -56,10 +56,10 @@ func (r *AssetRepository) FindAll(ctx context.Context) ([]*entity.Asset, error) 
 func (r *AssetRepository) FindByTicker(ctx context.Context, ticker string) (*entity.Asset, error) {
 	a := &entity.Asset{}
 	err := r.db.QueryRowContext(ctx, `
-		SELECT ticker, asset_type, quantity, price, ceiling_price, target_percent
+		SELECT ticker, asset_type, quantity, price, ceiling_price, target_percent, icon, currency
 		FROM assets
 		WHERE ticker = ?
-	`, ticker).Scan(&a.Ticker, &a.AssetType, &a.Quantity, &a.Price, &a.CeilingPrice, &a.TargetPercent)
+	`, ticker).Scan(&a.Ticker, &a.AssetType, &a.Quantity, &a.Price, &a.CeilingPrice, &a.TargetPercent, &a.Icon, &a.Currency)
 
 	if err == sql.ErrNoRows {
 		return nil, domainerrors.NewNotFoundError("Asset not found")
@@ -97,6 +97,23 @@ func (r *AssetRepository) UpdatePrice(ctx context.Context, ticker string, price 
 		SET price = ?, updated_at = CURRENT_TIMESTAMP
 		WHERE ticker = ?
 	`, price, ticker)
+	if err != nil {
+		return err
+	}
+
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domainerrors.NewNotFoundError("Asset not found")
+	}
+	return nil
+}
+
+func (r *AssetRepository) UpdateMetadata(ctx context.Context, ticker string, price float64, icon, currency string) error {
+	result, err := r.db.ExecContext(ctx, `
+		UPDATE assets
+		SET price = ?, icon = ?, currency = ?, updated_at = CURRENT_TIMESTAMP
+		WHERE ticker = ?
+	`, price, icon, currency, ticker)
 	if err != nil {
 		return err
 	}

@@ -15,6 +15,8 @@ type brapiResponse struct {
 	Results []struct {
 		Symbol             string  `json:"symbol"`
 		RegularMarketPrice float64 `json:"regularMarketPrice"`
+		LogoURL            string  `json:"logourl"`
+		Currency           string  `json:"currency"`
 	} `json:"results"`
 }
 
@@ -62,5 +64,7 @@ func (c *brapiHTTPClient) GetQuote(ctx context.Context, ticker string) (*domainc
 	return &domainclient.AssetQuote{
 		Symbol:             r.Symbol,
 		RegularMarketPrice: r.RegularMarketPrice,
+		LogoURL:            r.LogoURL,
+		Currency:           r.Currency,
 	}, nil
 }

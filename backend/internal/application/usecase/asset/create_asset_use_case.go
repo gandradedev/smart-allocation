@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"smart-allocation/internal/application/usecase/asset/dto"
+	domainclient "smart-allocation/internal/domain/client"
 	domainrepo "smart-allocation/internal/domain/repository"
 )
 
@@ -14,16 +15,16 @@ type CreateAssetUseCase interface {
 }
 
 type createAssetUseCase struct {
-	repo         domainrepo.AssetRepository
-	priceUpdater UpdateAssetPriceUseCase
+	repo   domainrepo.AssetRepository
+	client domainclient.BrapiClient
 }
 
-func NewCreateAssetUseCase(repo domainrepo.AssetRepository, priceUpdater UpdateAssetPriceUseCase) CreateAssetUseCase {
-	return &createAssetUseCase{repo: repo, priceUpdater: priceUpdater}
+func NewCreateAssetUseCase(repo domainrepo.AssetRepository, client domainclient.BrapiClient) CreateAssetUseCase {
+	return &createAssetUseCase{repo: repo, client: client}
 }
 
 // Execute cria um novo ativo na carteira com price=0 e dispara uma goroutine
-// para buscar e persistir o preço atual via brapi.dev de forma assíncrona.
+// para buscar e persistir o preço, ícone e moeda via brapi.dev de forma assíncrona.
 func (uc *createAssetUseCase) Execute(ctx context.Context, req *dto.CreateAssetRequestDTO) (*dto.CreateAssetResponseDTO, error) {
 	asset, err := req.ToEntity()
 	if err != nil {
@@ -35,8 +36,13 @@ func (uc *createAssetUseCase) Execute(ctx context.Context, req *dto.CreateAssetR
 	}
 
 	go func(ticker string) {
-		if err := uc.priceUpdater.Execute(context.Background(), ticker); err != nil {
-			log.Printf("async price update failed for %s: %v", ticker, err)
+		quote, err := uc.client.GetQuote(context.Background(), ticker)
+		if err != nil {
+			log.Printf("async metadata fetch failed for %s: %v", ticker, err)
+			return
+		}
+		if err := uc.repo.UpdateMetadata(context.Background(), ticker, quote.RegularMarketPrice, quote.LogoURL, quote.Currency); err != nil {
+			log.Printf("async metadata update failed for %s: %v", ticker, err)
 		}
 	}(asset.Ticker)
 

@@ -31,6 +31,8 @@ type Asset struct {
 	Price         float64
 	CeilingPrice  float64
 	TargetPercent float64
+	Icon          string
+	Currency      string
 }
 
 // NewAsset creates and validates a new asset.

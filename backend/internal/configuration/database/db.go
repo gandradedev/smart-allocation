@@ -29,6 +29,8 @@ func migrate(db *sql.DB) error {
 			ceiling_price   REAL NOT NULL DEFAULT 0,
 			target_percent  REAL NOT NULL DEFAULT 0,
 			asset_type	 	TEXT NOT NULL,
+			icon            TEXT NOT NULL DEFAULT '',
+			currency        TEXT NOT NULL DEFAULT '',
 			created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
