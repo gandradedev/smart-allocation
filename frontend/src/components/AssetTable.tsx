@@ -216,17 +216,30 @@ export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading 
                       ...group.map(asset => (
                         <tr key={asset.ticker} className="hover:bg-slate-50">
                           <td className="px-4 py-3">
-                            <span className="font-semibold text-slate-900">{asset.ticker}</span>
+                            <div className="flex items-center gap-2">
+                              {asset.icon && asset.asset_type === 'ACAO' ? (
+                                <img
+                                  src={asset.icon}
+                                  alt={asset.ticker}
+                                  className="h-6 w-6 rounded-full object-contain"
+                                />
+                              ) : (
+                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-500">
+                                  {asset.ticker.slice(0, 2)}
+                                </div>
+                              )}
+                              <span className="font-semibold text-slate-900">{asset.ticker}</span>
+                            </div>
                           </td>
                           <td className="px-4 py-3 text-slate-700">{fmt.decimal(asset.quantity)}</td>
                           <td className="px-4 py-3 text-slate-700">
                             {asset.price === 0
                               ? <PricePollCell ticker={asset.ticker} />
-                              : fmt.currency(asset.price)
+                              : fmt.currencyByCode(asset.price, asset.currency)
                             }
                           </td>
-                          <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.ceiling_price)}</td>
-                          <td className="px-4 py-3 text-slate-700">{fmt.currency(asset.current_value)}</td>
+                          <td className="px-4 py-3 text-slate-700">{fmt.currencyByCode(asset.ceiling_price, asset.currency)}</td>
+                          <td className="px-4 py-3 text-slate-700">{fmt.currencyByCode(asset.current_value, asset.currency)}</td>
                           <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.current_percent)}</td>
                           <td className="px-4 py-3 text-slate-700">{fmt.percent(asset.target_percent)}</td>
                           <td className="px-4 py-3">
@@ -238,7 +251,7 @@ export function AssetTable({ assets, totalToInvest, onEdit, onDelete, isLoading 
                                 {asset.shares_to_contribute > 0 ? fmt.decimal(asset.shares_to_contribute) : '—'}
                               </td>
                               <td className={`px-4 py-3 font-medium ${asset.adjusted_contribution > 0 ? 'text-green-700' : 'text-slate-700'}`}>
-                                {asset.adjusted_contribution > 0 ? fmt.currency(asset.adjusted_contribution) : '—'}
+                                {asset.adjusted_contribution > 0 ? fmt.currencyByCode(asset.adjusted_contribution, asset.currency) : '—'}
                               </td>
                             </>
                           )}

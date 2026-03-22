@@ -76,6 +76,7 @@ export default function App() {
           <PortfolioSummary
             totalValue={data?.total_value ?? 0}
             totalAssets={data?.total_assets ?? 0}
+            assets={data?.assets ?? []}
             totalToInvest={totalToInvest}
             onTotalToInvestChange={handleTotalToInvestChange}
           />

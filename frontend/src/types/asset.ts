@@ -9,6 +9,8 @@ export interface Asset {
   quantity: number
   ceiling_price: number
   target_percent: number
+  icon: string
+  currency: string
   current_value: number
   current_percent: number
   target_value: number
